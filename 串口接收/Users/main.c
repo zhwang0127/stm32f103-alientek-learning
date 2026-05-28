@@ -1,0 +1,80 @@
+/**
+ ******************************************************************************
+ * @file     main.c
+ * @author   正点原子团队(ALIENTEK)
+ * @version  V1.0
+ * @date     2023-08-01
+ * @brief    跑马灯实验
+ * @license  Copyright (c) 2020-2032, 广州市星翼电子科技有限公司
+ ******************************************************************************
+ * @attention
+ * 
+ * 实验平台:正点原子 M48Z-M3最小系统板STM32F103版
+ * 在线视频:www.yuanzige.com
+ * 技术论坛:www.openedv.com
+ * 公司网址:www.alientek.com
+ * 购买地址:openedv.taobao.com
+ ******************************************************************************
+ */
+
+#include "./SYSTEM/sys/sys.h"
+#include "./SYSTEM/usart/usart.h"
+#include "./SYSTEM/delay/delay.h"
+#include "./BSP/LED/led.h"
+
+UART_HandleTypeDef g_uart_init_handle;
+
+void usart_init(void)
+{
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_USART1_CLK_ENABLE();
+    
+    GPIO_InitTypeDef gpio_init_struct;
+
+    gpio_init_struct.Pin = GPIO_PIN_9;                   /* LED0引脚 */
+    gpio_init_struct.Mode = GPIO_MODE_AF_PP ;            /* 推挽复用输出 */
+    gpio_init_struct.Speed = GPIO_SPEED_FREQ_HIGH;          /* 高速 */
+    HAL_GPIO_Init(GPIOA, &gpio_init_struct);          /* 初始化TX引脚 */
+
+    gpio_init_struct.Pin = GPIO_PIN_10;                   /* LED0引脚 */
+    gpio_init_struct.Mode = GPIO_MODE_AF_INPUT ;            /* 输入 */
+    HAL_GPIO_Init(GPIOA, &gpio_init_struct);             /* 初始化TX引脚 */
+    
+    g_uart_init_handle.Instance=USART1;
+    g_uart_init_handle.Init.BaudRate=115200;
+    g_uart_init_handle.Init.WordLength=UART_WORDLENGTH_8B;
+    g_uart_init_handle.Init.StopBits=UART_STOPBITS_1;
+    g_uart_init_handle.Init.Parity=UART_PARITY_NONE;
+    g_uart_init_handle.Init.HwFlowCtl=UART_HWCONTROL_NONE;
+    g_uart_init_handle.Init.Mode=UART_MODE_TX_RX;
+    
+    HAL_UART_Init(&g_uart_init_handle);
+}
+
+int main(void)
+{
+    uint8_t rx_data;
+    uint8_t buf_a[5]={'H','E','L','L','O'};
+    
+    HAL_Init();                                             /* 初始化HAL库 */
+    sys_stm32_clock_init(RCC_PLL_MUL9);                     /* 设置时钟, 72Mhz */
+    delay_init(72);                                         /* 延时初始化 */
+    usart_init();                                     /* 初始化串口 */
+    led_init();                                             /* 初始化LED */
+    
+   
+    while (1)
+    {
+        if(HAL_UART_Receive(&g_uart_init_handle, &rx_data,1,100) == HAL_OK)
+        {
+            if(rx_data == 0x01)
+            {
+                LED0_TOGGLE();
+                HAL_UART_Transmit (&g_uart_init_handle,&rx_data,1,100);
+                
+            }
+        }
+                                     /* LED0灭 */
+        delay_ms(1000);
+    }
+}

@@ -1,0 +1,28 @@
+# Keil MDK 编译产物
+Output/
+*.o
+*.crf
+*.d
+*.dep
+*.axf
+*.hex
+*.bin
+*.map
+*.lnp
+*.htm
+*.build_log.htm
+*.lst
+*.sct
+*.iex
+*.uvguix.*
+*.scvd
+JLinkLog.txt
+JLink*
+
+# Keil 工程临时文件
+*.uvoptx.bak
+*.uvprojx.bak
+
+# 其他
+.DS_Store
+Thumbs.db
